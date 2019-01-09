@@ -40,6 +40,15 @@ function createSongsCSV() {
   done < tracks.csv
 }
 
+function createListeningsCSV() {
+  while IFS=, read -r userId trackId dateTstamp
+  do
+    myUserId=$(awk -v var="$userId" -F',' '{ if(($2 == var)) { print $1 } }' users.csv)
+    myTrackId=$(awk -v var="$trackId" -F',' '{ if(($1 == var)) { print $1 } }' songs.csv)
+    echo "$myUserId,$myTrackId,$dateTstamp" >> listenings.csv
+  done < samples.csv
+}
+
 function prepareData() {
   awk -F',' '{ print $3 }' samples.csv | sort | uniq  >> sort_timestamps.csv;
   awk -F',' '{ print $1 }' samples.csv | sort | uniq  >> sort_users.csv;
@@ -47,6 +56,7 @@ function prepareData() {
 }
 
 function clearAll() {
+  > listenings.csv
   > date.csv
   > dates.csv
   > samples.csv
@@ -66,15 +76,16 @@ uniqTracksMod='mod_unique_tracks.txt'
 tripSampleMod='mod_triplets_sample_20p.txt'
 
 clearAll
-convertTextToCSV $uniqTracksMod tracks.csv
-convertTextToCSV $tripSampleMod samples.csv
+convertTextToCSV $uniqTracks tracks.csv
+convertTextToCSV $tripSample samples.csv
 prepareData
 createDataCSV
 createUserCSV
 createSongsCSV
+createListeningsCSV
 
 
-
+# awk '/SOQVRHI12A6D4FB2D7/' songs.csv
 
 
 
