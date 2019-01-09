@@ -8,7 +8,7 @@ function convertTextToCSV() {
     then
       echo ${LINE[@]} | awk -F'<SEP>' '{print $2","$1","$3","$4}' >> $2
     else
-      echo ${LINE[@]} | awk -F'<SEP>' '{print $2","$1","$3}' >> $2
+      echo ${LINE[@]} | awk -F'<SEP>' '{print $1","$2","$3}' >> $2
     fi
   done < $1
 }
@@ -33,25 +33,27 @@ function createUserCSV() {
 
 function createSongsCSV() {
   id=0
-  while IFS=, read -r songId playedId artistName songName
+  while IFS=, read -r playedId songId artistName songName
   do
     echo "$id,$songId,$artistName,$songName" >> songs.csv
     id=$((id+1))
-  done < tracks.csv
+  done < unique_tracks.csv
 }
 
 function createListeningsCSV() {
-  while IFS=, read -r userId trackId dateTstamp
+  while IFS=, read -r trackId userId dateTstamp
   do
+    awk '/TRMMMUT128F42646E8/' songs.csv
     myUserId=$(awk -v var="$userId" -F',' '{ if(($2 == var)) { print $1 } }' users.csv)
-    myTrackId=$(awk -v var="$trackId" -F',' '{ if(($1 == var)) { print $1 } }' songs.csv)
+    myTrackId=$(awk -v var="$trackId" -F',' '{ if(($2 == var)) { print $1 } }' songs.csv)
+    echo "$userId"
     echo "$myUserId,$myTrackId,$dateTstamp" >> listenings.csv
   done < samples.csv
 }
 
 function prepareData() {
   awk -F',' '{ print $3 }' samples.csv | sort | uniq  >> sort_timestamps.csv;
-  awk -F',' '{ print $1 }' samples.csv | sort | uniq  >> sort_users.csv;
+  awk -F',' '{ print $2 }' samples.csv | sort | uniq  >> sort_users.csv;
   # awk -F',' '{ print $1 }' tracks.csv | sort | uniq  >> sort_users.csv;
 }
 
@@ -59,12 +61,12 @@ function clearAll() {
   > listenings.csv
   > date.csv
   > dates.csv
-  > samples.csv
-  > songs.csv
+  # > samples.csv
+  # > songs.csv
   > sort_date.csv
   > sort_samples.csv
   > sort_timestamps.csv
-  > tracks.csv
+  # > tracks.csv
   > users.csv
   > sort_users.csv
 }
@@ -76,12 +78,12 @@ uniqTracksMod='mod_unique_tracks.txt'
 tripSampleMod='mod_triplets_sample_20p.txt'
 
 clearAll
-convertTextToCSV $uniqTracks tracks.csv
-convertTextToCSV $tripSample samples.csv
+# convertTextToCSV $uniqTracks tracks.csv
+# convertTextToCSV $tripSampleMod samples.csv
 prepareData
 createDataCSV
 createUserCSV
-createSongsCSV
+# createSongsCSV
 createListeningsCSV
 
 
